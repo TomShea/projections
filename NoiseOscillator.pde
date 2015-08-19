@@ -1,72 +1,73 @@
-import processing.video.*;
-Capture cam;
+// Perlin Ooze for Ooligan Alley projection mapping
+
+// Color pallette - can be changed on the fly
 color[] currentPallette = new color[16];
+
+// The amount by which the x, y and z arguments for the noise() function change with each iteration
+// x and y determine the 'zoom' of the noise
 float xincrement = 0.005;
 float yincrement = 0.005;
+// z determines the 'speed' or 'viscosity' of the animation
+float zincrement = 0.01;
+
+// The amount by which the increments above increase or shrink with each frame
+// A control block in the draw() loop changes these over time to prevent a monotonic compression
 float xstretch = 0.99;
 float ystretch = 0.99;
 float zstretch = 0.99;
-// The noise function's 3rd argument, a global variable that increments once per cycle
+
+// The noise function's 3rd argument, a global variable that increments once per cycle (i.e. time)
 float zoff = 0.0;
-// We will increment zoff differently than xoff and yoff
-float zincrement = 0.01;
+
 void setup() {
-  size(600, 600);
+  size(400, 400);
   frameRate(120);
 
+  // Initialize the pallette to look pretty cool
   for (int i = 0; i < currentPallette.length; i++) {
     currentPallette[i] = color(0, 0, 0);
   }
-  /*currentPallette[0] = color(255, 0, 0);
-  currentPallette[1] = color(255, 0, 0);
-  currentPallette[2] = color(255, 0, 0);
-  currentPallette[3] = color(255, 0, 0);
-  currentPallette[4] = color(255, 0, 0);
-  currentPallette[5] = color(255, 0, 0);
-  currentPallette[6] = color(255, 0, 0);
-  currentPallette[7] = color(255, 0, 0);
-  currentPallette[8] = color(255, 0, 0);
-  currentPallette[9] = color(255, 0, 0);
-  currentPallette[10] = color(255, 0, 0);*/
   currentPallette[11] = color(0, 0, 255);
   currentPallette[12] = color(0, 0, 255);
   currentPallette[13] = color(0, 0, 255);
-  //currentPallette[14] = color(255, 0, 0);
   currentPallette[15] = color(255, 0, 0);
-
-
 }
 
 void draw() {
-  setupChangingPalette();
-  // Optional: adjust noise detail here
-  // noiseDetail(8,0.65f);
+  // Set up palette:
+  //setupChangingPalette();
+  //setupGreenPurple();
+  setupRainbow();
+
+  // Adjust noise detail here
+  // Parameter 1 is the number of octaves
+  // Parameter 2 is the percent contribution of each subsequent octave
+   noiseDetail(6, 0.48f);
 
   loadPixels();
 
-  float xoff = 0.0; // Start xoff at 0
+  float xoff = 0.0;
 
-  // For every x,y coordinate in a 2D space, calculate a noise value and produce a brightness value
+  // For every x,y coordinate in a 2D space, for each frame in time (z), calculate a noise value and scale it to 0-255
   for (int x = 0; x < width; x++) {
-    xoff += xincrement;   // Increment xoff
-    float yoff = 0.0;   // For every xoff, start yoff at 0
+    xoff += xincrement;
+    float yoff = 0.0;
     for (int y = 0; y < height; y++) {
-      yoff += yincrement; // Increment yoff
+      yoff += yincrement;
 
-      // Calculate noise and scale by 255
-      int bright = floor(noise(xoff,yoff,zoff)*255);
+      int brightness = floor(noise(xoff, yoff, zoff) * 255);
 
-      // Try using this line instead
-      //float bright = random(0,255);
+      // Use this line to illustrate the difference between Perlin noise and white noise:
+      //float brightness = random(0,255);
 
-      // Set each pixel onscreen to a grayscale value
-
-           //pixels[x+y*width] = getColor(bright);
-           pixels[x+y*width] = currentPallette[bright%16];
+      // Set the color of each pixel based on the brightness value:
+      //pixels[x+y*width] = getColor(bright);
+       pixels[x+y*width] = currentPallette[brightness % 16];
 
     }
   }
 
+  //Mirror the screen for cool effects:
   /*
   leftHalf = get(0, 0, width/2, height);
   translate(width/2, 0);
@@ -76,40 +77,34 @@ void draw() {
 
   updatePixels();
 
-  zoff += zincrement; // Increment zoff
+  zoff += zincrement;
+
+  // Increase or decrease the incrementors to expand/contract quicker/slower (breathing)
+
   xincrement*=xstretch;
   yincrement*=ystretch;
   zincrement *= zstretch;
+
   if (xincrement > 0.01) {
     xstretch = 0.999;
   }
   if (xincrement < 0.002) {
     xstretch = 1.001;
   }
+
    if (yincrement > 0.01) {
     ystretch = 0.999;
   }
   if (yincrement < 0.002) {
     ystretch = 1.001;
   }
+
      if (zincrement > 0.01) {
     zstretch = 0.99;
   }
   if (zincrement < 0.002) {
     zstretch = 1.01;
   }
-}
-
-color getColor(float c){
- if (c < 64) {
-   return color(255, 0, 0);
- } else if (c < 128) {
-   return color(255, 255, 0);
- } else if (c < 192) {
-   return color(0, 255, 255);
- } else {
-   return color(0, 0, 255);
- }
 }
 
 void setupGreenPurple(){
@@ -128,6 +123,25 @@ void setupGreenPurple(){
   currentPallette[12] = color(0, 0, 0);
   currentPallette[13] = color(0, 0, 0);
   currentPallette[14] = color(0, 0, 0);
+  currentPallette[15] = color(0, 0, 0);
+}
+
+void setupRainbow(){
+  currentPallette[0] = color(255, 0, 0);
+  currentPallette[1] = color(0, 0, 0);
+  currentPallette[2] = color(255, 165, 0);
+  currentPallette[3] = color(0, 0, 0);
+  currentPallette[4] = color(255, 255, 0);
+  currentPallette[5] = color(0, 0, 0);
+  currentPallette[6] = color(0, 128, 0);
+  currentPallette[7] = color(0, 0, 0);
+  currentPallette[8] = color(0, 128, 255);
+  currentPallette[9] = color(0, 0, 0);
+  currentPallette[10] = color(0, 0, 255);
+  currentPallette[11] = color(0, 0, 0);
+  currentPallette[12] = color(75, 0, 130);
+  currentPallette[13] = color(0, 0, 0);
+  currentPallette[14] = color(238, 130, 238);
   currentPallette[15] = color(0, 0, 0);
 }
 
